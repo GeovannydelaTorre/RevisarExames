@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Revisión de Exámenes</title>
+  <title>Gestión de Revisión de Exámenes</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     :root {
       --primary-color: #4a6fa5;
@@ -17,237 +19,255 @@
       --warning-color: #ffc107;
     }
     
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.6;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
       color: var(--dark-color);
-      background-color: #f5f7fa;
+      min-height: 100vh;
       padding: 20px;
     }
     
-    .container {
-      max-width: 800px;
+    .app-container {
+      max-width: 1400px;
       margin: 0 auto;
       background: white;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
     }
     
-    h1 {
+    .app-header {
+      background: var(--primary-color);
+      color: white;
+      padding: 20px;
       text-align: center;
-      margin-bottom: 25px;
-      color: var(--primary-color);
     }
     
-    h2 {
-      margin-bottom: 15px;
-      color: var(--secondary-color);
+    .app-body {
+      padding: 30px;
+    }
+    
+    .nav-tabs .nav-link {
+      color: var(--dark-color);
+      font-weight: 500;
+    }
+    
+    .nav-tabs .nav-link.active {
+      color: var(--primary-color);
+      font-weight: 600;
+      border-bottom: 3px solid var(--primary-color);
     }
     
     .section {
-      margin-bottom: 25px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #eaeaea;
-    }
-    
-    .input-group {
-      margin-bottom: 15px;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    
-    .btn {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      transition: background-color 0.3s;
+      margin-bottom: 30px;
+      padding: 25px;
+      border-radius: 10px;
+      background: var(--light-color);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
     
     .btn-primary {
       background-color: var(--primary-color);
-      color: white;
+      border-color: var(--primary-color);
     }
     
     .btn-primary:hover {
       background-color: #3a5a84;
-    }
-    
-    .btn-secondary {
-      background-color: var(--secondary-color);
-      color: white;
-    }
-    
-    .btn-secondary:hover {
-      background-color: #5a86b9;
+      border-color: #3a5a84;
     }
     
     .btn-warning {
       background-color: var(--warning-color);
+      border-color: var(--warning-color);
       color: var(--dark-color);
-    }
-    
-    .btn-warning:hover {
-      background-color: #e0a800;
-    }
-    
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
     }
     
     .pregunta {
       display: flex;
       align-items: center;
-      padding: 12px;
-      margin-bottom: 8px;
-      background-color: #f8f9fa;
-      border-radius: 5px;
-      transition: background-color 0.2s;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      background-color: white;
+      border-radius: 8px;
+      border-left: 4px solid var(--secondary-color);
+      transition: all 0.2s;
     }
     
     .pregunta:hover {
-      background-color: #e9ecef;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     
     .pregunta label {
       flex-grow: 1;
       margin-bottom: 0;
       cursor: pointer;
-      font-weight: normal;
     }
     
-    .pregunta input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
+    .stats-box {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
     
-    .stats {
-      margin-top: 30px;
-      padding: 15px;
-      background-color: #f8f9fa;
-      border-radius: 5px;
+    .progress {
+      height: 10px;
+      margin-top: 5px;
     }
     
-    .stats h3 {
-      margin-bottom: 10px;
-      color: var(--primary-color);
+    .table-responsive {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
     
-    .stats p {
-      margin-bottom: 5px;
+    .table thead {
+      background-color: var(--primary-color);
+      color: white;
     }
     
     .hidden {
       display: none;
     }
     
-    .alert {
-      padding: 12px;
-      border-radius: 5px;
-      margin-bottom: 15px;
+    .carrera-badge {
+      background-color: var(--secondary-color);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-weight: 600;
     }
     
-    .alert-info {
-      background-color: #d1ecf1;
-      color: #0c5460;
-      border: 1px solid #bee5eb;
+    .question-row:hover {
+      background-color: #f8f9fa;
     }
     
-    .progress-bar {
-      height: 10px;
-      background-color: #e9ecef;
-      border-radius: 5px;
-      margin-top: 5px;
-      overflow: hidden;
+    .percentage-cell {
+      font-weight: 600;
     }
     
-    .progress {
-      height: 100%;
-      background-color: var(--success-color);
-      border-radius: 5px;
+    .high-error {
+      background-color: rgba(255, 107, 107, 0.2);
     }
     
-    @media (max-width: 600px) {
-      .btn-group {
-        flex-direction: column;
+    .medium-error {
+      background-color: rgba(255, 193, 7, 0.2);
+    }
+    
+    .low-error {
+      background-color: rgba(40, 167, 69, 0.2);
+    }
+    
+    @media (max-width: 768px) {
+      .app-body {
+        padding: 15px;
       }
       
-      .btn {
-        width: 100%;
+      .section {
+        padding: 15px;
+      }
+      
+      .table-responsive {
+        font-size: 0.8rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Sección de inicio -->
-    <div id="inicio">
-      <h1>Revisión de Exámenes</h1>
-      <div class="section">
-        <div class="input-group">
-          <label for="carreraInput">Nombre de la carrera:</label>
-          <input type="text" id="carreraInput" placeholder="Ej: Ingeniería en Sistemas">
+  <div class="app-container">
+    <div class="app-header">
+      <h1><i class="fas fa-file-alt me-2"></i>Gestión de Revisión de Exámenes</h1>
+      <p class="mb-0">Sistema colaborativo para revisión de exámenes</p>
+    </div>
+    
+    <div class="app-body">
+      <ul class="nav nav-tabs mb-4" id="appTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="revision-tab" data-bs-toggle="tab" data-bs-target="#revision" type="button" role="tab">Revisión</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="estadisticas-tab" data-bs-toggle="tab" data-bs-target="#estadisticas" type="button" role="tab">Estadísticas</button>
+        </li>
+      </ul>
+      
+      <div class="tab-content" id="appTabsContent">
+        <!-- Pestaña de Revisión -->
+        <div class="tab-pane fade show active" id="revision" role="tabpanel">
+          <div id="inicio">
+            <div class="section text-center">
+              <h2 class="mb-4">Comenzar Nueva Revisión</h2>
+              <div class="row justify-content-center">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="carreraInput" class="form-label">Nombre de la Carrera</label>
+                    <input type="text" class="form-control form-control-lg" id="carreraInput" placeholder="Ej: Ingeniería en Sistemas">
+                  </div>
+                  <button class="btn btn-primary btn-lg" onclick="iniciarRevision()">
+                    <i class="fas fa-play-circle me-2"></i>Comenzar Revisión
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="revision-container" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h2 id="tituloCarrera" class="mb-0">Revisando a <span class="carrera-badge" id="carreraNombre"></span></h2>
+              <h3 id="contadorAlumno" class="mb-0">Alumno 1</h3>
+            </div>
+            
+            <div class="section">
+              <h4 class="mb-4">Marque las preguntas incorrectas</h4>
+              <div id="formPreguntas"></div>
+              
+              <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary flex-grow-1" onclick="guardarAlumno()">
+                  <i class="fas fa-user-graduate me-2"></i>Alumno Siguiente
+                </button>
+                <button class="btn btn-warning" onclick="terminarGrupo()">
+                  <i class="fas fa-flag-checkered me-2"></i>Terminar Grupo
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <button class="btn btn-primary" onclick="iniciarRevision()">Comenzar Revisión</button>
+        
+        <!-- Pestaña de Estadísticas -->
+        <div class="tab-pane fade" id="estadisticas" role="tabpanel">
+          <div class="section">
+            <h2 class="mb-4">Estadísticas de Revisión</h2>
+            
+            <div class="text-center mb-4">
+              <button class="btn btn-primary" onclick="cargarEstadisticas()">
+                <i class="fas fa-sync-alt me-2"></i>Cargar Estadísticas
+              </button>
+            </div>
+            
+            <div class="stats-box">
+              <h4 class="mb-4">Comparativa de Preguntas por Carrera</h4>
+              <div class="table-responsive">
+                <table class="table table-striped table-bordered" id="tablaComparativa">
+                  <thead>
+                    <tr>
+                      <th>Pregunta</th>
+                      <!-- Las columnas de carreras se generarán dinámicamente -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Los datos se cargarán dinámicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- Sección de revisión -->
-    <div id="revision" class="hidden">
-      <h1 id="tituloCarrera">Revisando a [Carrera]</h1>
-      <div class="alert alert-info">
-        <h2 id="contadorAlumno">Alumno 1</h2>
-        <p>Marca las preguntas incorrectas. Por defecto, todas están correctas.</p>
-      </div>
-
-      <div id="formPreguntas" class="section"></div>
-
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="guardarAlumno()">Alumno Siguiente</button>
-        <button class="btn btn-warning" onclick="terminarGrupo()">Terminar Grupo</button>
-      </div>
-
-      <!-- Estadísticas en tiempo real -->
-      <div id="estadisticas" class="stats hidden">
-        <h3>Estadísticas del Grupo</h3>
-        <p id="totalAlumnos">Total de alumnos revisados: 0</p>
-        <div id="preguntasStats"></div>
-      </div>
-    </div>
-
-    <!-- Sección de estadísticas generales -->
-    <div id="estadisticasGenerales" class="stats hidden">
-      <h3>Estadísticas Generales</h3>
-      <p id="totalGrupos">Total de grupos revisados: 0</p>
-      <p id="totalAlumnosGeneral">Total de alumnos revisados: 0</p>
-      <div id="preguntasStatsGeneral"></div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Configuración de Firebase con tus datos
     const firebaseConfig = {
@@ -266,8 +286,6 @@
     // Variables globales
     let carreraActual = "";
     let numAlumno = 1;
-    let estadisticasPreguntas = Array(16).fill(0); // Contador de respuestas incorrectas por pregunta
-    let totalAlumnosRevisados = 0;
 
     // Iniciar la revisión
     function iniciarRevision() {
@@ -280,13 +298,8 @@
       
       // Ocultar sección de inicio y mostrar revisión
       document.getElementById("inicio").classList.add("hidden");
-      document.getElementById("revision").classList.remove("hidden");
-      document.getElementById("tituloCarrera").textContent = "Revisando a " + carreraActual;
-      
-      // Reiniciar contadores si es necesario
-      if (numAlumno > 1) {
-        document.getElementById("estadisticas").classList.remove("hidden");
-      }
+      document.getElementById("revision-container").classList.remove("hidden");
+      document.getElementById("carreraNombre").textContent = carreraActual;
       
       actualizarContador();
       generarPreguntas();
@@ -306,8 +319,10 @@
         const div = document.createElement("div");
         div.className = "pregunta";
         div.innerHTML = `
-          <label for="p${i}">Pregunta ${i}</label>
-          <input type="checkbox" id="p${i}" checked>
+          <div class="form-check form-switch flex-grow-1">
+            <input class="form-check-input" type="checkbox" id="p${i}" checked>
+            <label class="form-check-label" for="p${i}">Pregunta ${i}</label>
+          </div>
         `;
         form.appendChild(div);
       }
@@ -325,7 +340,6 @@
         
         if (!estaCorrecta) {
           incorrectas++;
-          estadisticasPreguntas[i-1]++; // Incrementar contador de incorrectas para esta pregunta
         }
       }
       
@@ -339,10 +353,8 @@
           timestamp: new Date()
         });
         
-        totalAlumnosRevisados++;
         numAlumno++;
         actualizarContador();
-        actualizarEstadisticas();
         generarPreguntas(); // Reiniciar el formulario para el siguiente alumno
         
       } catch (error) {
@@ -351,118 +363,196 @@
       }
     }
 
-    // Actualizar estadísticas en tiempo real
-    function actualizarEstadisticas() {
-      const totalAlumnosElement = document.getElementById("totalAlumnos");
-      totalAlumnosElement.textContent = `Total de alumnos revisados: ${totalAlumnosRevisados}`;
-      
-      const preguntasStatsElement = document.getElementById("preguntasStats");
-      preguntasStatsElement.innerHTML = "<h4>Porcentaje de error por pregunta:</h4>";
-      
-      for (let i = 0; i < 16; i++) {
-        const porcentajeError = totalAlumnosRevisados > 0 
-          ? (estadisticasPreguntas[i] / totalAlumnosRevisados * 100).toFixed(1) 
-          : 0;
-        
-        const preguntaDiv = document.createElement("div");
-        preguntaDiv.innerHTML = `
-          <p>Pregunta ${i+1}: ${porcentajeError}% de error 
-            <div class="progress-bar">
-              <div class="progress" style="width: ${porcentajeError}%"></div>
-            </div>
-          </p>
-        `;
-        preguntasStatsElement.appendChild(preguntaDiv);
-      }
-      
-      // Mostrar estadísticas si hay al menos un alumno
-      if (totalAlumnosRevisados > 0) {
-        document.getElementById("estadisticas").classList.remove("hidden");
-      }
-    }
-
     // Terminar el grupo y volver al inicio
     function terminarGrupo() {
       // Reiniciar variables
       numAlumno = 1;
-      estadisticasPreguntas = Array(16).fill(0);
-      totalAlumnosRevisados = 0;
       
       // Mostrar sección de inicio y ocultar revisión
       document.getElementById("inicio").classList.remove("hidden");
-      document.getElementById("revision").classList.add("hidden");
-      document.getElementById("estadisticas").classList.add("hidden");
+      document.getElementById("revision-container").classList.add("hidden");
       document.getElementById("carreraInput").value = "";
     }
 
-    // Cargar estadísticas generales desde Firebase
-    async function cargarEstadisticasGenerales() {
+    // Cargar estadísticas desde Firebase
+    async function cargarEstadisticas() {
       try {
         const snapshot = await db.collection("revisiones").get();
-        const grupos = {};
-        const alumnosPorGrupo = {};
-        const statsPreguntas = Array(16).fill(0);
-        let totalAlumnos = 0;
+        
+        if (snapshot.empty) {
+          alert("No hay datos de revisiones disponibles.");
+          return;
+        }
+        
+        // Procesar datos para estadísticas
+        const carreras = {};
+        const preguntasStats = {};
         
         snapshot.forEach(doc => {
           const data = doc.data();
           const carrera = data.carrera;
           
-          // Contar grupos
-          if (!grupos[carrera]) {
-            grupos[carrera] = true;
+          // Inicializar estadísticas por carrera si no existen
+          if (!carreras[carrera]) {
+            carreras[carrera] = {
+              totalAlumnos: 0,
+              preguntas: Array(16).fill(0) // Contador de errores por pregunta
+            };
           }
           
-          // Contar alumnos por grupo
-          if (!alumnosPorGrupo[carrera]) {
-            alumnosPorGrupo[carrera] = 0;
-          }
-          alumnosPorGrupo[carrera]++;
+          // Actualizar estadísticas por carrera
+          carreras[carrera].totalAlumnos++;
           
-          // Contar respuestas incorrectas
+          // Contar errores por pregunta
           for (let i = 1; i <= 16; i++) {
             if (!data.respuestas["Pregunta" + i]) {
-              statsPreguntas[i-1]++;
+              carreras[carrera].preguntas[i-1]++;
             }
           }
-          
-          totalAlumnos++;
         });
         
-        // Mostrar estadísticas generales
-        document.getElementById("totalGrupos").textContent = `Total de grupos revisados: ${Object.keys(grupos).length}`;
-        document.getElementById("totalAlumnosGeneral").textContent = `Total de alumnos revisados: ${totalAlumnos}`;
-        
-        const preguntasStatsElement = document.getElementById("preguntasStatsGeneral");
-        preguntasStatsElement.innerHTML = "<h4>Porcentaje de error general por pregunta:</h4>";
-        
-        for (let i = 0; i < 16; i++) {
-          const porcentajeError = totalAlumnos > 0 
-            ? (statsPreguntas[i] / totalAlumnos * 100).toFixed(1) 
-            : 0;
-          
-          const preguntaDiv = document.createElement("div");
-          preguntaDiv.innerHTML = `
-            <p>Pregunta ${i+1}: ${porcentajeError}% de error 
-              <div class="progress-bar">
-                <div class="progress" style="width: ${porcentajeError}%"></div>
-              </div>
-            </p>
-          `;
-          preguntasStatsElement.appendChild(preguntaDiv);
-        }
-        
-        document.getElementById("estadisticasGenerales").classList.remove("hidden");
+        // Generar tabla comparativa
+        generarTablaComparativa(carreras);
         
       } catch (error) {
         console.error("Error al cargar estadísticas:", error);
+        alert("Error al cargar las estadísticas. Revisa la consola para más detalles.");
       }
+    }
+
+    // Generar tabla comparativa de preguntas por carrera
+    function generarTablaComparativa(carreras) {
+      const tabla = document.getElementById('tablaComparativa');
+      const thead = tabla.querySelector('thead tr');
+      const tbody = tabla.querySelector('tbody');
+      
+      // Limpiar la tabla
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+      
+      // Obtener nombres de carreras
+      const carrerasNames = Object.keys(carreras);
+      
+      // Crear la fila de encabezado
+      const thPregunta = document.createElement('th');
+      thPregunta.textContent = 'Pregunta';
+      thead.appendChild(thPregunta);
+      
+      // Crear columnas para cada carrera
+      carrerasNames.forEach(carrera => {
+        const th = document.createElement('th');
+        th.textContent = carrera;
+        thead.appendChild(th);
+      });
+      
+      // Crear filas para cada pregunta
+      for (let i = 0; i < 16; i++) {
+        const tr = document.createElement('tr');
+        tr.className = 'question-row';
+        
+        // Celda de la pregunta
+        const tdPregunta = document.createElement('td');
+        tdPregunta.textContent = `Pregunta ${i+1}`;
+        tdPregunta.style.fontWeight = 'bold';
+        tr.appendChild(tdPregunta);
+        
+        // Para cada carrera, agregar el porcentaje de error para esta pregunta
+        carrerasNames.forEach(carrera => {
+          const td = document.createElement('td');
+          const totalAlumnos = carreras[carrera].totalAlumnos;
+          const errores = carreras[carrera].preguntas[i];
+          const porcentaje = totalAlumnos > 0 ? (errores / totalAlumnos * 100).toFixed(2) : '0.00';
+          
+          td.textContent = `${errores} (${porcentaje}%)`;
+          td.className = 'percentage-cell';
+          
+          // Aplicar clases de color según el porcentaje de error
+          const porcentajeNum = parseFloat(porcentaje);
+          if (porcentajeNum >= 50) {
+            td.classList.add('high-error');
+          } else if (porcentajeNum >= 25) {
+            td.classList.add('medium-error');
+          } else {
+            td.classList.add('low-error');
+          }
+          
+          tr.appendChild(td);
+        });
+        
+        tbody.appendChild(tr);
+      }
+      
+      // Agregar una fila con los totales de alumnos por carrera
+      const trTotal = document.createElement('tr');
+      trTotal.style.fontWeight = 'bold';
+      
+      const tdTotal = document.createElement('td');
+      tdTotal.textContent = 'Total Alumnos';
+      trTotal.appendChild(tdTotal);
+      
+      carrerasNames.forEach(carrera => {
+        const td = document.createElement('td');
+        td.textContent = carreras[carrera].totalAlumnos;
+        trTotal.appendChild(td);
+      });
+      
+      tbody.appendChild(trTotal);
+      
+      // Ordenar las preguntas por el mayor porcentaje de error promedio
+      ordenarPreguntasPorError(tbody, carrerasNames.length);
+    }
+
+    // Ordenar las preguntas por el mayor porcentaje de error promedio
+    function ordenarPreguntasPorError(tbody, numCarreras) {
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      // Eliminar la última fila (totales) para no ordenarla
+      const totalRow = rows.pop();
+      
+      // Ordenar las filas por el promedio de error (de mayor a menor)
+      rows.sort((a, b) => {
+        const aCells = a.querySelectorAll('td');
+        const bCells = b.querySelectorAll('td');
+        
+        let aTotal = 0;
+        let bTotal = 0;
+        
+        // Sumar los porcentajes de error de todas las carreras
+        for (let i = 1; i <= numCarreras; i++) {
+          const aText = aCells[i].textContent;
+          const bText = bCells[i].textContent;
+          
+          const aPorcentaje = parseFloat(aText.substring(aText.indexOf('(') + 1, aText.indexOf('%')));
+          const bPorcentaje = parseFloat(bText.substring(bText.indexOf('(') + 1, bText.indexOf('%')));
+          
+          aTotal += aPorcentaje;
+          bTotal += bPorcentaje;
+        }
+        
+        // Calcular promedios
+        const aPromedio = aTotal / numCarreras;
+        const bPromedio = bTotal / numCarreras;
+        
+        // Ordenar de mayor a menor
+        return bPromedio - aPromedio;
+      });
+      
+      // Limpiar el tbody y agregar las filas ordenadas
+      tbody.innerHTML = '';
+      rows.forEach(row => tbody.appendChild(row));
+      tbody.appendChild(totalRow);
+    }
+
+    // Cambiar a la pestaña de estadísticas
+    function mostrarEstadisticas() {
+      const statsTab = new bootstrap.Tab(document.getElementById('estadisticas-tab'));
+      statsTab.show();
+      cargarEstadisticas();
     }
 
     // Inicializar la aplicación
     window.onload = function() {
-      // Opcional: Cargar estadísticas generales al iniciar
-      // cargarEstadisticasGenerales();
+      // Opcional: Cargar estadísticas al iniciar si hay datos
+      // cargarEstadisticas();
     };
   </script>
 </body>
