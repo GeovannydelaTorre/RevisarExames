@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revisión de Exámenes</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --primary-color: #4a6fa5;
+      --secondary-color: #6e9cd2;
+      --accent-color: #ff6b6b;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark-color);
+      background-color: #f5f7fa;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: var(--primary-color);
+    }
+    
+    h2 {
+      margin-bottom: 15px;
+      color: var(--secondary-color);
+    }
+    
+    .section {
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eaeaea;
+    }
+    
+    .input-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #3a5a84;
+    }
+    
+    .btn-secondary {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a86b9;
+    }
+    
+    .btn-warning {
+      background-color: var(--warning-color);
+      color: var(--dark-color);
+    }
+    
+    .btn-warning:hover {
+      background-color: #e0a800;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .pregunta {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 8px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+    }
+    
+    .pregunta:hover {
+      background-color: #e9ecef;
+    }
+    
+    .pregunta label {
+      flex-grow: 1;
+      margin-bottom: 0;
+      cursor: pointer;
+      font-weight: normal;
+    }
+    
+    .pregunta input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    
+    .stats {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+    }
+    
+    .stats h3 {
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+    
+    .stats p {
+      margin-bottom: 5px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .alert {
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+    }
+    
+    .alert-info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    
+    .progress {
+      height: 100%;
+      background-color: var(--success-color);
+      border-radius: 5px;
+    }
+    
+    @media (max-width: 600px) {
+      .btn-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sección de inicio -->
+    <div id="inicio">
+      <h1>Revisión de Exámenes</h1>
+      <div class="section">
+        <div class="input-group">
+          <label for="carreraInput">Nombre de la carrera:</label>
+          <input type="text" id="carreraInput" placeholder="Ej: Ingeniería en Sistemas">
+        </div>
+        <button class="btn btn-primary" onclick="iniciarRevision()">Comenzar Revisión</button>
+      </div>
+    </div>
+
+    <!-- Sección de revisión -->
+    <div id="revision" class="hidden">
+      <h1 id="tituloCarrera">Revisando a [Carrera]</h1>
+      <div class="alert alert-info">
+        <h2 id="contadorAlumno">Alumno 1</h2>
+        <p>Marca las preguntas incorrectas. Por defecto, todas están correctas.</p>
+      </div>
+
+      <div id="formPreguntas" class="section"></div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="guardarAlumno()">Alumno Siguiente</button>
+        <button class="btn btn-warning" onclick="terminarGrupo()">Terminar Grupo</button>
+      </div>
+
+      <!-- Estadísticas en tiempo real -->
+      <div id="estadisticas" class="stats hidden">
+        <h3>Estadísticas del Grupo</h3>
+        <p id="totalAlumnos">Total de alumnos revisados: 0</p>
+        <div id="preguntasStats"></div>
+      </div>
+    </div>
+
+    <!-- Sección de estadísticas generales -->
+    <div id="estadisticasGenerales" class="stats hidden">
+      <h3>Estadísticas Generales</h3>
+      <p id="totalGrupos">Total de grupos revisados: 0</p>
+      <p id="totalAlumnosGeneral">Total de alumnos revisados: 0</p>
+      <div id="preguntasStatsGeneral"></div>
+    </div>
+  </div>
+
+  <script>
+    // Configuración de Firebase con tus datos
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkXgwCJgoKsSkYcc4FEhk8jWMgJSJga4s",
+      authDomain: "revision-examenes.firebaseapp.com",
+      projectId: "revision-examenes",
+      storageBucket: "revision-examenes.firebasestorage.app",
+      messagingSenderId: "636321832255",
+      appId: "1:636321832255:web:9fe9df64466944d240078a"
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Variables globales
+    let carreraActual = "";
+    let numAlumno = 1;
+    let estadisticasPreguntas = Array(16).fill(0); // Contador de respuestas incorrectas por pregunta
+    let totalAlumnosRevisados = 0;
+
+    // Iniciar la revisión
+    function iniciarRevision() {
+      carreraActual = document.getElementById("carreraInput").value.trim();
+      
+      if (!carreraActual) {
+        alert("Debes ingresar el nombre de la carrera");
+        return;
+      }
+      
+      // Ocultar sección de inicio y mostrar revisión
+      document.getElementById("inicio").classList.add("hidden");
+      document.getElementById("revision").classList.remove("hidden");
+      document.getElementById("tituloCarrera").textContent = "Revisando a " + carreraActual;
+      
+      // Reiniciar contadores si es necesario
+      if (numAlumno > 1) {
+        document.getElementById("estadisticas").classList.remove("hidden");
+      }
+      
+      actualizarContador();
+      generarPreguntas();
+    }
+
+    // Actualizar el contador de alumnos
+    function actualizarContador() {
+      document.getElementById("contadorAlumno").textContent = "Alumno " + numAlumno;
+    }
+
+    // Generar las 16 preguntas con checkboxes
+    function generarPreguntas() {
+      const form = document.getElementById("formPreguntas");
+      form.innerHTML = "";
+      
+      for (let i = 1; i <= 16; i++) {
+        const div = document.createElement("div");
+        div.className = "pregunta";
+        div.innerHTML = `
+          <label for="p${i}">Pregunta ${i}</label>
+          <input type="checkbox" id="p${i}" checked>
+        `;
+        form.appendChild(div);
+      }
+    }
+
+    // Guardar datos del alumno actual y pasar al siguiente
+    async function guardarAlumno() {
+      // Recopilar respuestas
+      let respuestas = {};
+      let incorrectas = 0;
+      
+      for (let i = 1; i <= 16; i++) {
+        const estaCorrecta = document.getElementById("p" + i).checked;
+        respuestas["Pregunta" + i] = estaCorrecta;
+        
+        if (!estaCorrecta) {
+          incorrectas++;
+          estadisticasPreguntas[i-1]++; // Incrementar contador de incorrectas para esta pregunta
+        }
+      }
+      
+      try {
+        // Guardar en Firebase
+        await db.collection("revisiones").add({
+          carrera: carreraActual,
+          alumno: numAlumno,
+          respuestas: respuestas,
+          totalIncorrectas: incorrectas,
+          timestamp: new Date()
+        });
+        
+        totalAlumnosRevisados++;
+        numAlumno++;
+        actualizarContador();
+        actualizarEstadisticas();
+        generarPreguntas(); // Reiniciar el formulario para el siguiente alumno
+        
+      } catch (error) {
+        console.error("Error al guardar en Firebase:", error);
+        alert("Error al guardar los datos. Revisa la consola para más detalles.");
+      }
+    }
+
+    // Actualizar estadísticas en tiempo real
+    function actualizarEstadisticas() {
+      const totalAlumnosElement = document.getElementById("totalAlumnos");
+      totalAlumnosElement.textContent = `Total de alumnos revisados: ${totalAlumnosRevisados}`;
+      
+      const preguntasStatsElement = document.getElementById("preguntasStats");
+      preguntasStatsElement.innerHTML = "<h4>Porcentaje de error por pregunta:</h4>";
+      
+      for (let i = 0; i < 16; i++) {
+        const porcentajeError = totalAlumnosRevisados > 0 
+          ? (estadisticasPreguntas[i] / totalAlumnosRevisados * 100).toFixed(1) 
+          : 0;
+        
+        const preguntaDiv = document.createElement("div");
+        preguntaDiv.innerHTML = `
+          <p>Pregunta ${i+1}: ${porcentajeError}% de error 
+            <div class="progress-bar">
+              <div class="progress" style="width: ${porcentajeError}%"></div>
+            </div>
+          </p>
+        `;
+        preguntasStatsElement.appendChild(preguntaDiv);
+      }
+      
+      // Mostrar estadísticas si hay al menos un alumno
+      if (totalAlumnosRevisados > 0) {
+        document.getElementById("estadisticas").classList.remove("hidden");
+      }
+    }
+
+    // Terminar el grupo y volver al inicio
+    function terminarGrupo() {
+      // Reiniciar variables
+      numAlumno = 1;
+      estadisticasPreguntas = Array(16).fill(0);
+      totalAlumnosRevisados = 0;
+      
+      // Mostrar sección de inicio y ocultar revisión
+      document.getElementById("inicio").classList.remove("hidden");
+      document.getElementById("revision").classList.add("hidden");
+      document.getElementById("estadisticas").classList.add("hidden");
+      document.getElementById("carreraInput").value = "";
+    }
+
+    // Cargar estadísticas generales desde Firebase
+    async function cargarEstadisticasGenerales() {
+      try {
+        const snapshot = await db.collection("revisiones").get();
+        const grupos = {};
+        const alumnosPorGrupo = {};
+        const statsPreguntas = Array(16).fill(0);
+        let totalAlumnos = 0;
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const carrera = data.carrera;
+          
+          // Contar grupos
+          if (!grupos[carrera]) {
+            grupos[carrera] = true;
+          }
+          
+          // Contar alumnos por grupo
+          if (!alumnosPorGrupo[carrera]) {
+            alumnosPorGrupo[carrera] = 0;
+          }
+          alumnosPorGrupo[carrera]++;
+          
+          // Contar respuestas incorrectas
+          for (let i = 1; i <= 16; i++) {
+            if (!data.respuestas["Pregunta" + i]) {
+              statsPreguntas[i-1]++;
+            }
+          }
+          
+          totalAlumnos++;
+        });
+        
+        // Mostrar estadísticas generales
+        document.getElementById("totalGrupos").textContent = `Total de grupos revisados: ${Object.keys(grupos).length}`;
+        document.getElementById("totalAlumnosGeneral").textContent = `Total de alumnos revisados: ${totalAlumnos}`;
+        
+        const preguntasStatsElement = document.getElementById("preguntasStatsGeneral");
+        preguntasStatsElement.innerHTML = "<h4>Porcentaje de error general por pregunta:</h4>";
+        
+        for (let i = 0; i < 16; i++) {
+          const porcentajeError = totalAlumnos > 0 
+            ? (statsPreguntas[i] / totalAlumnos * 100).toFixed(1) 
+            : 0;
+          
+          const preguntaDiv = document.createElement("div");
+          preguntaDiv.innerHTML = `
+            <p>Pregunta ${i+1}: ${porcentajeError}% de error 
+              <div class="progress-bar">
+                <div class="progress" style="width: ${porcentajeError}%"></div>
+              </div>
+            </p>
+          `;
+          preguntasStatsElement.appendChild(preguntaDiv);
+        }
+        
+        document.getElementById("estadisticasGenerales").classList.remove("hidden");
+        
+      } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+      }
+    }
+
+    // Inicializar la aplicación
+    window.onload = function() {
+      // Opcional: Cargar estadísticas generales al iniciar
+      // cargarEstadisticasGenerales();
+    };
+  </script>
+</body>
+</html>
